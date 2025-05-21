@@ -1,39 +1,35 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  baileys-db:
-    image: postgres
-    container_name: baileys-db
-    environment:
-      POSTGRES_PASSWORD: 2024pass
-      POSTGRES_DB: bailey
-    ports:
-      - "5432:5432"  # Exportado apenas para demonstração, remova em produção
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks: 
-      - wpp-net
-  baileys-api:
-    container_name: baileys-api
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    volumes:
-      - '.:/app'
-      - /app/node_modules
-      - prisma:/prisma
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: postgres://postgres:2024pass@baileys-db:5432/bailey
-    depends_on:
-      - baileys-db
-    networks: 
-      - wpp-net
+    baileys-db:
+        image: postgres:17-alpine
+        container_name: baileys-db
+        environment:
+            POSTGRES_PASSWORD: ${DB_PASSWORD:?missing_DB_PASSWORD}
+            POSTGRES_DB: baileys
+        volumes:
+            - postgres:/var/lib/postgresql/data
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    baileys-api:
+        container_name: baileys-api
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        ports:
+            - "3000:3000"
+        environment:
+            DATABASE_URL: postgres://postgres:${DB_PASSWORD}@baileys-db:5432/baileys
+            API_KEY: ${BAILEYS_API_KEY:?missing_BAILEYS_API_KEY}
+        depends_on:
+            baileys-db:
+                condition: service_healthy
+        restart: unless-stopped
 
 volumes:
-  postgres_data:
-  prisma:
-networks:
-  wpp-net:
-    driver: bridge
+    postgres:

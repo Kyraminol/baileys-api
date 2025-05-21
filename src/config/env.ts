@@ -1,8 +1,5 @@
 import { LogLevel } from "@/types";
-import { config } from "dotenv";
 import { z } from "zod";
-
-config();
 
 interface CustomProcessEnv {
 	PORT?: number;

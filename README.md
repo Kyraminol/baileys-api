@@ -1,21 +1,20 @@
-> 🚨 NOTICE: There is no time for maintance and so, this project will be archived and no longer receive updates. Thank you everyone who has been a part of this ❤️
-
----
-
 # Baileys API
 
 Baileys is a simple, fast and easy to use WhatsApp Web API written in TypeScript. It is designed to be simple to use and is optimized for usage in Node.js.
 
 An implementation of [@WhiskeySockets/Baileys](https://github.com/WhiskeySockets/Baileys) as a simple REST API with multiple device support
 
-Project continued from [@ookamiiixd/baileys-api](https://github.com/ookamiiixd/baileys-api/)
+Project continued from [@nizarfadlan/baileys-api](https://github.com/nizarfadlan/baileys-api) that was a continuation of [@ookamiiixd/baileys-api](https://github.com/ookamiiixd/baileys-api/)
 
 ## Requirements
 
--   NodeJS version 18.19.0 or higher (Recommended version 20 and above)
--   Prisma [supported databases](https://www.prisma.io/docs/reference/database-reference/supported-databases). Tested on MySQL and PostgreSQL
+- Node.js version 22 or higher
+- Prisma [supported databases](https://www.prisma.io/docs/reference/database-reference/supported-databases). Tested on MySQL and PostgreSQL
+- Docker and Docker Compose (optional, for containerized deployment and development)
 
 ## Installation
+
+### Standard Installation
 
 1. Download [latest release](https://github.com/nizarfadlan/baileys-api/releases/latest). If you want to skip the build step, you can download the release (file with the `baileys-api.tgz` name pattern) from the release page
 2. Enter to the project directory
@@ -32,6 +31,20 @@ npm run build
 ```
 
 You can skip this part if you're using the prebuilt one from the release page
+
+### Docker Installation
+
+The project includes Docker configurations for both development and production environments. The development setup volume mounting for live code editing, while the production setup makes an image ready to be published.
+
+```bash
+# For development
+docker-compose -f docker-compose.dev.yml up -d
+
+# For production deployment
+docker-compose up -d
+```
+
+For production, configure your environment variables in a `.env` file or export them before starting the containers.
 
 ## Setup
 
@@ -97,7 +110,7 @@ API_KEY="a6bc226axxxxxxxxxxxxxx"
 ## Usage
 
 1. Make sure you have completed the **Installation** and **Setup** step
-1. You can then start the app using the `dev` for development and `start` script for production
+2. You can then start the app using the `dev` for development and `start` script for production
 
 ```sh
 # Development
@@ -107,7 +120,7 @@ npm run dev
 npm run start
 ```
 
-1. Now the endpoint should be available according to your environment variables configuration. Default is at `http://localhost:3000`
+3. Now the endpoint should be available according to your environment variables configuration. Default is at `http://localhost:3000`
 
 ## API Docs
 
@@ -117,8 +130,9 @@ The API Documentation can fork **Postman Collection** in your workspace Postman
 
 ## Notes
 
--   I only provide a simple authentication method, please modify according to your own needs.
+- I only provide a simple authentication method, please modify according to your own needs.
+- When using Docker, always change environment variables accordingly.
 
 ## Notice
 
-This project is intended for learning purpose only, don't use it for spamming or any activities that's prohibited by **WhatsApp**
+This project is intended for learning purpose only, don't use it for spamming or any activities prohibited by **WhatsApp**

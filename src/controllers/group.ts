@@ -60,20 +60,22 @@ export const create: RequestHandler = async (req, res) => {
 		const { subject, participants } = req.body;
 
 		if (!Array.isArray(participants) || participants.length < 1) {
-			return res
-				.status(400)
-				.json({ error: "Participants must be an array and have at least 1 members" });
+			res.status(400).json({
+				error: "Participants must be an array and have at least 1 members",
+			});
+			return;
 		} else if (subject.length > 100) {
-			return res.status(400).json({ error: "Subject must be less than 100 characters" });
+			res.status(400).json({ error: "Subject must be less than 100 characters" });
+			return;
 		}
 
 		const listNumbersNotExists: string[] = [];
-		participants.forEach(async (participant) => {
+		for (const participant of participants) {
 			const exists = await WhatsappService.jidExists(session, participant);
 			if (!exists) {
 				listNumbersNotExists.push(participant);
 			}
-		});
+		}
 
 		const data = await session.groupCreate(subject, participants);
 		res.status(200).json({
@@ -97,18 +99,19 @@ export const updateParticipants: RequestHandler = async (req, res) => {
 		const { participants, action = "add" } = req.body;
 
 		if (!Array.isArray(participants) || participants.length < 1) {
-			return res
-				.status(400)
-				.json({ error: "Participants must be an array and have at least 1 members" });
+			res.status(400).json({
+				error: "Participants must be an array and have at least 1 members",
+			});
+			return;
 		}
 
 		const listNumbersNotExists: string[] = [];
-		participants.forEach(async (participant) => {
+		for (const participant of participants) {
 			const exists = await WhatsappService.jidExists(session, participant);
 			if (!exists) {
 				listNumbersNotExists.push(participant);
 			}
-		});
+		}
 
 		const data = await session.groupParticipantsUpdate(jid, participants, action);
 		res.status(200).json({
@@ -132,7 +135,8 @@ export const updateSubject: RequestHandler = async (req, res) => {
 		const { subject } = req.body;
 
 		if (subject.length > 100) {
-			return res.status(400).json({ error: "Subject must be less than 100 characters" });
+			res.status(400).json({ error: "Subject must be less than 100 characters" });
+			return;
 		}
 
 		await session.groupUpdateSubject(jid, subject);

@@ -1,17 +1,15 @@
+import type { ConnectionState, proto, SocketConfig, WASocket } from "baileys";
 import makeWASocket, {
 	DisconnectReason,
 	isJidBroadcast,
 	makeCacheableSignalKeyStore,
 } from "baileys";
-import type { ConnectionState, SocketConfig, WASocket, proto } from "baileys";
 import { Store, useSession } from "./store";
 import { prisma } from "@/config/database";
-import { logger, delay, emitEvent } from "@/utils";
+import { delay, emitEvent, logger } from "@/utils";
 import { WAStatus } from "@/types";
-import type { Boom } from "@hapi/boom";
 import type { Response } from "express";
 import { toDataURL } from "qrcode";
-import type { WebSocket as WebSocketType } from "ws";
 import env from "@/config/env";
 
 export type Session = WASocket & {
@@ -44,7 +42,7 @@ class WhatsappService {
 		});
 		for (const { sessionId, data } of storedSessions) {
 			const { readIncomingMessages, ...socketConfig } = JSON.parse(data);
-			WhatsappService.createSession({ sessionId, readIncomingMessages, socketConfig });
+			await WhatsappService.createSession({ sessionId, readIncomingMessages, socketConfig });
 		}
 	}
 
@@ -92,7 +90,7 @@ class WhatsappService {
 		};
 
 		const handleConnectionClose = () => {
-			const code = (connectionState.lastDisconnect?.error as Boom)?.output?.statusCode;
+			const code = (connectionState.lastDisconnect?.error as any)?.output?.statusCode;
 			const restartRequired = code === DisconnectReason.restartRequired;
 			const doNotReconnect = !WhatsappService.shouldReconnect(sessionId);
 
@@ -100,9 +98,9 @@ class WhatsappService {
 
 			if (code === DisconnectReason.loggedOut || doNotReconnect) {
 				if (res) {
-					!SSE &&
-						!res.headersSent &&
+					if (!SSE && !res.headersSent) {
 						res.status(500).json({ error: "Unable to create session" });
+					}
 					res.end();
 				}
 				destroy(doNotReconnect);
@@ -137,12 +135,12 @@ class WhatsappService {
 							sessionId,
 							undefined,
 							"error",
-							`Unable to generate QR code: ${e.message}`,
+							`Unable to generate QR code: ${e instanceof Error ? e.message : e}`,
 						);
 						res.status(500).json({ error: "Unable to generate QR" });
 					}
 				}
-				destroy();
+				await destroy();
 			}
 		};
 
@@ -159,7 +157,7 @@ class WhatsappService {
 						sessionId,
 						undefined,
 						"error",
-						`Unable to generate QR code: ${e.message}`,
+						`Unable to generate QR code: ${e instanceof Error ? e.message : e}`,
 					);
 				}
 			}
@@ -170,8 +168,10 @@ class WhatsappService {
 				res.writableEnded ||
 				(qr && currentGenerations >= env.SSE_MAX_QR_GENERATION)
 			) {
-				res && !res.writableEnded && res.end();
-				destroy();
+				if (res && !res.writableEnded) {
+					res.end();
+				}
+				await destroy();
 				return;
 			}
 
@@ -188,7 +188,6 @@ class WhatsappService {
 			: handleNormalConnectionUpdate;
 		const { state, saveCreds } = await useSession(sessionId);
 		const socket = makeWASocket({
-			printQRInTerminal: true,
 			browser: [env.BOT_NAME || "Whatsapp Bot", "Chrome", "3.0"],
 			generateHighQualityLinkPreview: true,
 			...socketConfig,
@@ -257,10 +256,7 @@ class WhatsappService {
 	}
 
 	static getSessionStatus(session: Session) {
-		const state = ["CONNECTING", "CONNECTED", "DISCONNECTING", "DISCONNECTED"];
-		let status = state[(session.ws as WebSocketType).readyState];
-		status = session.user ? "AUTHENTICATED" : status;
-		return session.waStatus !== WAStatus.Unknown ? session.waStatus : status.toLowerCase();
+		return session.waStatus;
 	}
 
 	static listSessions() {
@@ -275,7 +271,7 @@ class WhatsappService {
 	}
 
 	static async deleteSession(sessionId: string) {
-		WhatsappService.sessions.get(sessionId)?.destroy();
+		await WhatsappService.sessions.get(sessionId)?.destroy();
 	}
 
 	static sessionExists(sessionId: string) {
@@ -286,7 +282,7 @@ class WhatsappService {
 		try {
 			if (type === "number") {
 				const [result] = await session.onWhatsApp(jid);
-				if(result?.exists) {
+				if (result?.exists) {
 					return result.jid;
 				} else {
 					return null;
@@ -294,7 +290,7 @@ class WhatsappService {
 			}
 
 			const groupMeta = await session.groupMetadata(jid);
-			if(groupMeta.id) {
+			if (groupMeta.id) {
 				return groupMeta.id;
 			} else {
 				return null;

@@ -42,7 +42,7 @@ export default function chatHandler(sessionId: string, event: BaileysEventEmitte
 				sessionId,
 				undefined,
 				"error",
-				`An error occured during chats set: ${e.message}`,
+				`An error occured during chats set: ${e instanceof Error ? e.message : e}`,
 			);
 		}
 	};
@@ -71,7 +71,7 @@ export default function chatHandler(sessionId: string, event: BaileysEventEmitte
 				sessionId,
 				undefined,
 				"error",
-				`An error occured during chats upsert: ${e.message}`,
+				`An error occured during chats upsert: ${e instanceof Error ? e.message : e}`,
 			);
 		}
 	};
@@ -84,12 +84,12 @@ export default function chatHandler(sessionId: string, event: BaileysEventEmitte
             const existingChat = await model.findUnique({
                where: { sessionId_id: { id: update.id!, sessionId } },
             });
-   
+
             if (!existingChat) {
                logger.info({ update }, "Chat not found, skipping update");
-               continue; 
+               continue;
             }
-   
+
             await model.update({
                select: { pkId: true },
                data: {
@@ -108,20 +108,20 @@ export default function chatHandler(sessionId: string, event: BaileysEventEmitte
             if (e instanceof PrismaClientKnownRequestError && e.code === "P2025") {
                return logger.info({ update }, "Got update for non existent chat");
             }
-   
+
             // Emit event error
             emitEvent(
                "chats.update",
                sessionId,
                undefined,
                "error",
-               `An error occurred during chat update: ${e.message}`,
+               `An error occurred during chat update: ${e instanceof Error ? e.message : e}`,
             );
             logger.error(e, "An error occurred during chat update");
          }
       }
    };
-   
+
 
 	const del: BaileysEventHandler<"chats.delete"> = async (ids) => {
 		try {
@@ -136,7 +136,7 @@ export default function chatHandler(sessionId: string, event: BaileysEventEmitte
 				sessionId,
 				undefined,
 				"error",
-				`An error occured during chats delete: ${e.message}`,
+				`An error occured during chats delete: ${e instanceof Error ? e.message : e}`,
 			);
 		}
 	};

@@ -72,7 +72,10 @@ export const updateBlock: RequestHandler = async (req, res) => {
 		const { jid, action = "block" } = req.body;
 
 		const exists = await WhatsappService.jidExists(session, jid);
-		if (!exists) return res.status(400).json({ error: "Jid does not exists" });
+		if (!exists) {
+			res.status(400).json({ error: "Jid does not exists" });
+			return;
+		}
 
 		await session.updateBlockStatus(jid, action);
 		res.status(200).json({ message: `Contact ${action}ed` });

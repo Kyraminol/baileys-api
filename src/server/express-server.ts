@@ -4,7 +4,7 @@ import cors from "cors";
 import routes from "@/routes";
 
 export class ExpressServer {
-	private app: Application;
+	private readonly app: Application;
 
 	constructor() {
 		this.app = express();
@@ -14,15 +14,15 @@ export class ExpressServer {
 
 	private setupMiddleware() {
 		this.app.use(cors());
-		this.app.use(express.json());
+		this.app.use(express.json({ limit: "100mb" }));
 	}
 
 	private setupRoutes() {
 		this.app.use("/", routes);
 
-		this.app.all("*", (_: Request, res: Response) =>
-			res.status(404).json({ error: "URL not found" }),
-		);
+		// this.app.all("*", (_: Request, res: Response) => {
+		// 	res.status(404).json({ error: "URL not found" });
+		// });
 	}
 
 	public getApp(): Application {

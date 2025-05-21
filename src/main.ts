@@ -5,4 +5,4 @@ async function bootstrap() {
 	await server.start();
 }
 
-bootstrap();
+bootstrap().then();

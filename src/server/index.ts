@@ -9,7 +9,7 @@ export class Server {
 	private httpServer: ExpressServer;
 	private socketServer: SocketServer;
 	private httpPort = env.PORT;
-	private server: http.Server;
+	private readonly server: http.Server;
 
 	constructor() {
 		this.httpServer = new ExpressServer();

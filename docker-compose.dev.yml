@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+    baileys-db:
+        image: postgres:17-alpine
+        container_name: baileys-db-dev
+        environment:
+            POSTGRES_PASSWORD: CHANGEMEPLEASEDBPWD
+            POSTGRES_DB: baileys
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres:/var/lib/postgresql/data
+
+    baileys-api:
+        container_name: baileys-api-dev
+        build:
+            context: .
+            dockerfile: ./Dockerfile.dev
+        volumes:
+            - ./src:/app/src
+            - ./prisma:/app/prisma
+            - ./node_modules:/app/node_modules
+            - ./.env:/app/.env
+            - ./tsconfig.json:/app/tsconfig.json
+            - ./tsconfig.tsbuildinfo:/app/tsconfig.tsbuildinfo
+        ports:
+            - "3000:3000"
+        environment:
+            DATABASE_URL: postgres://postgres:CHANGEMEPLEASEDBPWD@baileys-db:5432/baileys
+            API_KEY: CHANGEMEPLEASE
+        depends_on:
+            - baileys-db
+
+volumes:
+    postgres:
